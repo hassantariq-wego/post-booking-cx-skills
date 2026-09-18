@@ -8,17 +8,19 @@ One rule for this repo: everything in it must earn its place. A skill goes in wh
 
 | Skill | Answers |
 |---|---|
-| [`post-booking-check`](skills/post-booking-check/SKILL.md) | What happened to one booking, what happened to every booking that ended in a state, and whether a release changed post-booking outcomes. BigQuery. |
+| [`booking-trace`](skills/booking-trace/SKILL.md) | What happened to one booking, every event in order |
+| [`behavior-trace`](skills/behavior-trace/SKILL.md) | What happened next to every booking that ended in a state over a period |
+| [`release-impact`](skills/release-impact/SKILL.md) | Whether a release changed post-booking outcomes, before versus after |
+
+All three read BigQuery `wego-cloud.integrated_bookings_flights` through the shared runner in `skills/_shared`, which also holds the preflight check and the data reference.
 
 ## Use it
 
-Claude Code, from this repo or by symlinking the skill into your own:
+Claude Code: symlink the skills into your own skills folder, then ask the question or invoke by name.
 
 ```
-ln -s "$PWD/skills/post-booking-check" ~/.claude/skills/post-booking-check
+for s in booking-trace behavior-trace release-impact; do ln -sfn "$PWD/skills/$s" ~/.claude/skills/$s; done
 ```
-
-Then `/post-booking-check trace WFV517C4KKF26`, or just ask the question; the skill triggers on booking references, booking states and release checks.
 
 The first run tells you what to connect. Currently that is the Google Cloud SDK signed in to `wego-cloud`.
 
