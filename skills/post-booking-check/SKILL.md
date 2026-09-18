@@ -3,7 +3,7 @@ name: post-booking-check
 description: Answer a post-booking question about Wego flight bookings with a table of facts from BigQuery, not a story. Use it whenever someone gives a WF booking reference and asks what happened to it, asks what happened to the bookings that ended in some state (cancelled, failed ticketing, review in process) over a period, or asks whether a release or PR in wego-fares, flight-integrations, roxana, olympias, orchard or wego-ai changed post-booking outcomes. Trigger on CS escalations carrying a booking reference, on "did the customer get an email", on "how many bookings", and on "did the deploy change anything", even when BigQuery is not mentioned.
 ---
 
-Three paths, one rule: return what the data says as a table, name the source of each column, name what is unverified, and stop. Add narrative only when asked.
+Three paths, one shape of answer: one or two lines that answer the question, the table, one line naming the dataset, one line naming what the data cannot show. Stop there. The reader is a PM or a CS lead who will ask if they want more; a page of caveats buries the answer they came for.
 
 ## Before any path
 
@@ -19,9 +19,11 @@ Input: one booking reference. Output: every recorded event for it, in UTC order.
 scripts/query.sh sql/booking_trace.sql ref=WF... from_shard=YYYYMMDD to_shard=YYYYMMDD
 ```
 
-The shards bound every sharded table by date. If you do not know when the booking was created, start with the last 90 days; if the created row is missing, widen. Once you have the created date, 45 days after it is enough.
+The shards bound every sharded table by date. Created date to 45 days after it is enough. If you only know the month, use its first day to 45 days past its end. If you know nothing, start with the last 90 days and widen if the created row is missing.
 
-Present the timeline as returned. It already collapses repeated polling into one row. Then answer the question that was asked in one or two lines above the table, for example "cancelled by the Travelport sweep at 16:51 UTC, no email after the cancel". The `EMAIL_LOG` rows are emails handed to wego-crm; see `references/data-sources.md` for what that does and does not prove.
+Present the timeline as returned. It already collapses repeated polling into one row. The first row has no timestamp: it is the itinerary's current state, not an event, so keep it as the header of the table. Then answer the question that was asked in one or two lines above the table, for example "cancelled by the Travelport sweep at 16:51 UTC, no email after the cancel".
+
+Two things in the timeline need `references/data-sources.md` to read correctly: the queue number of the event that changed the booking names the code path that acted, and its table says which paths email the customer; and an `EMAIL_LOG` row is an email handed to wego-crm, which proves less than it looks.
 
 ## Path 2: behavior-trace
 
