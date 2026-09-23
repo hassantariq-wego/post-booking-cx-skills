@@ -5,9 +5,14 @@
 -- param: gds STRING
 -- param: from_shard STRING
 -- param: to_shard STRING
--- Pass '' for cancellation_reason, payment_status or gds to mean "any".
+-- param: event_from STRING
+-- param: event_to STRING
+-- Pass '' for cancellation_reason, payment_status, gds, event_from or event_to to mean "any".
 -- from_shard/to_shard (YYYYMMDD) bound the booking creation date.
-WITH b AS (
+-- event_from/event_to (e.g. '2026-09-23 06:39:27+00') bound when the booking CHANGED STATE,
+-- which is what answers "since the release". Half-open: event_from inclusive, event_to exclusive.
+-- Keep the shard window wide enough to still contain those bookings' creation dates.
+WITH b0 AS (
   SELECT DISTINCT b.id, b.booking_ref, i.integration_type,
          COALESCE(b.cancelled_at, b.completed_at, b.updated_at) AS event_at
   FROM `wego-cloud.integrated_bookings_flights.bookings*` b
@@ -18,6 +23,11 @@ WITH b AS (
     AND (@cancellation_reason = '' OR b.cancellation_reason = @cancellation_reason)
     AND (@payment_status = '' OR b.payment_status = @payment_status)
     AND (@gds = '' OR i.integration_type = @gds)
+),
+b AS (
+  SELECT * FROM b0
+  WHERE (@event_from = '' OR event_at >= TIMESTAMP(NULLIF(@event_from, '')))
+    AND (@event_to   = '' OR event_at <  TIMESTAMP(NULLIF(@event_to,   '')))
 ),
 q AS (
   SELECT b.booking_ref,

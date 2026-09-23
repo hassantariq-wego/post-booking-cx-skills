@@ -12,10 +12,16 @@ Run `../_shared/scripts/preflight.sh`. It checks `bq`, the gcloud login and read
 ## Run
 
 ```
-../_shared/scripts/query.sh behavior_trace.sql booking_status=CANCELLED cancellation_reason=FAILED_TICKETING payment_status=VOIDED gds= from_shard=20260601 to_shard=20260918
+../_shared/scripts/query.sh behavior_trace.sql booking_status=CANCELLED cancellation_reason=FAILED_TICKETING payment_status=VOIDED gds= from_shard=20260601 to_shard=20260918 event_from= event_to=
 ```
 
-Pass an empty value for `cancellation_reason`, `payment_status` or `gds` to mean any. The window bounds the booking creation date. The runner refuses a missing parameter, so a forgotten filter cannot become a silent NULL.
+Pass an empty value for `cancellation_reason`, `payment_status`, `gds`, `event_from` or `event_to` to mean any. `from_shard`/`to_shard` bound the booking creation date. The runner refuses a missing parameter, so a forgotten filter cannot become a silent NULL.
+
+To check whether a release changed behaviour, bound the state change with `event_from` and leave the shards wide enough to still contain those bookings' creation dates:
+
+```
+../_shared/scripts/query.sh behavior_trace.sql booking_status=CANCELLED cancellation_reason=FAILED_TICKETING payment_status=VOIDED gds=TRAVELPORT from_shard=20260601 to_shard=20260924 "event_from=2026-09-23 06:39:27+00" event_to=
+```
 
 ## Read the result
 

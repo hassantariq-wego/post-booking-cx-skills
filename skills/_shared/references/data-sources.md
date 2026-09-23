@@ -30,7 +30,7 @@ wego-crm answers 200 when the job is queued, not when it is delivered, and answe
 | 51, 501 | Travelport, Sabre | ticketing success poll |
 | 52, 502 | Travelport, Sabre | ticketing failed poll (stale fare); sets `qct_status = FAILED` only, booking unchanged |
 | 53, 503 | Travelport, Sabre | needs action (PNR data gap) |
-| 41 | Travelport | ops-cancellation sweep: cancels the booking and voids the hold, sends no customer email |
+| 41 | Travelport | ops-cancellation sweep: cancels, voids, and sends the cancellation email since 23 Sep 2026; before that date it sent none |
 | 201 | Sabre | ops-cancellation sweep: cancels, voids, and sends the cancellation email |
 | 203 | Sabre | voluntary exchange |
 | none | LCC and direct | no GDS queue; the success task polls the database |
