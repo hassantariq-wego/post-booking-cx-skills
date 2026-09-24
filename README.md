@@ -19,7 +19,8 @@ All three read BigQuery `wego-cloud.integrated_bookings_flights` through the sha
 Claude Code: symlink the skills into your own skills folder, then ask the question or invoke by name.
 
 ```
-for s in booking-trace behavior-trace release-impact; do ln -sfn "$PWD/skills/$s" ~/.claude/skills/$s; done
+repo=$(git rev-parse --show-toplevel) && mkdir -p ~/.claude/skills &&
+for s in booking-trace behavior-trace release-impact; do ln -sfn "$repo/skills/$s" ~/.claude/skills/$s; done
 ```
 
 The first run tells you what to connect. Currently that is the Google Cloud SDK signed in to `wego-cloud`.

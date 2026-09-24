@@ -18,6 +18,15 @@ git -C <repo> log -1 --format=%cI <tag>            # wego-fares tags look like 2
 gh pr view <n> --repo wego/<repo> --json mergedAt   # for a PR
 ```
 
+Both give the time the code reached master, which is earlier than the time production started
+running it, by the build plus the rolling deploy. Over a window of days that gap is noise. On a
+same-day check it puts old-code bookings on the new-code side, so use the time the new version
+first served instead: the Datadog deployment change story for the service, or the deploy job's
+completion time. Say in the answer which one you used.
+
+Several tags can ship on one day, so "the 23 Sep release" may be ambiguous. Name the tag, and say
+which change is being measured and which other tags share the window.
+
 The metrics are booking outcomes, so they answer for wego-fares and flight-integrations releases. For roxana, olympias, orchard and wego-ai the release time resolves the same way but these tables cannot see the change. Say "metrics for this repo are not defined yet" rather than running the query and implying it measured something.
 
 ## Run

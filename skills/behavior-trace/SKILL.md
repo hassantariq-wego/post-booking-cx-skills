@@ -17,15 +17,27 @@ Run `../_shared/scripts/preflight.sh`. It checks `bq`, the gcloud login and read
 
 Pass an empty value for `cancellation_reason`, `payment_status`, `gds`, `event_from` or `event_to` to mean any. `from_shard`/`to_shard` bound the booking creation date. The runner refuses a missing parameter, so a forgotten filter cannot become a silent NULL.
 
-To check whether a release changed behaviour, bound the state change with `event_from` and leave the shards wide enough to still contain those bookings' creation dates:
+To check whether a release changed behaviour, bound the state change with `event_from` and keep the shards wide enough to still contain those bookings' creation dates:
 
 ```
-../_shared/scripts/query.sh behavior_trace.sql booking_status=CANCELLED cancellation_reason=FAILED_TICKETING payment_status=VOIDED gds=TRAVELPORT from_shard=20260601 to_shard=20260924 "event_from=2026-09-23 06:39:27+00" event_to=
+../_shared/scripts/query.sh behavior_trace.sql booking_status=CANCELLED cancellation_reason= payment_status= gds=<GDS> from_shard=<YYYYMMDD> to_shard=<YYYYMMDD> "event_from=<YYYY-MM-DD HH:MM:SS+00>" event_to=
 ```
+
+`event_from` is the moment the new version started serving, not the tag or merge time, which run
+earlier by the build plus the rolling deploy. `release-impact` § Resolve the release time says how
+to get it. Leave `cancellation_reason` and `payment_status` empty on a release check: they are
+output columns as well as filters, so an empty value shows you every outcome the queue produced
+rather than only the one you expected.
 
 ## Read the result
 
 Each row is one GDS and one combination of queues seen at the moment the booking changed state. The queue number names the code path that acted; read it with the table in `../_shared/references/data-sources.md`. The same end state reached through two different queues is two different pieces of code, and that difference is usually the answer.
+
+Each row is one combination of GDS, queue, `cancellation_reason` and `payment_status`. The last two
+matter: a single queue routinely carries several outcomes, and a combined row hides which is which.
+Queue 41 mixes ticketing failures that are emailed with voluntary cancels that are not, and reading
+those as one population reports a false gap. `example_refs` gives up to five booking references per
+row, so a surprising row goes straight into `booking-trace`.
 
 The email columns count `EMAIL_LOG` rows, emails handed to wego-crm, before the event and within an hour after it. The reference says what that does and does not prove. The departure columns say how many customers had a flight within a day, within a week, or later.
 
