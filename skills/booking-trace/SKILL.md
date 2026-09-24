@@ -21,7 +21,11 @@ The shards bound every sharded table by date. Created date to 45 days after it i
 
 ## Read the result
 
-Render the timeline as a table when you show it to a person, escaping any pipe inside a cell; admin notes contain them. The query returns CSV precisely so those survive. Present it as returned. It already collapses repeated polling into one row. The first row's `utc` reads `current`: it is the itinerary's present state, not an event, so keep it as the header of the table.
+Render it as a Markdown pipe table when you show it to a person. Pad the cells so the table is aligned as plain text and renders as a real table in Slack, and escape any pipe inside a cell. The query returns CSV because that is what survives a cell containing a comma, a pipe or a newline; do not paste the CSV at someone. Admin notes do contain pipes.
+
+**Show every row, unlike `behavior-trace`.** That skill summarises a population, where choosing the rows that answer the question is the job. This one is a forensic record of a single booking, where the row you leave out is the one that explains it. The query already collapses repeated polling, so what remains is the evidence. If the timeline is long and you summarise it, say you did and keep the full table underneath.
+
+The first row's `utc` reads `current`: it is the itinerary's present state, not an event, so keep it as the header of the table.
 
 Two things need `../_shared/references/data-sources.md` to read correctly: the queue number of the event that changed the booking names the code path that acted, and its table says which paths email the customer; and an `EMAIL_LOG` row is an email handed to wego-crm, which proves less than it looks.
 

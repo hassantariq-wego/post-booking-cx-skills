@@ -51,5 +51,6 @@ missing data. Sabre is usually almost entirely FAILED, so it reads `released_mon
 `released_and_emailed` 0, `released_never_cancelled` 60. That is 0 of 0 measurable, not a total
 email failure, and reporting it as one is the mistake this column exists to prevent.
 
-Render the result as a table when you show it to a person; the query returns CSV so that a cell
-containing a comma or a pipe survives.
+Render it as a Markdown pipe table when you show it to a person. Pad the cells so the table is aligned as plain text and renders as a real table in Slack, and escape any pipe inside a cell. The query returns CSV because that is what survives a cell containing a comma, a pipe or a newline; do not paste the CSV at someone.
+
+Show the ALL row and the provider rows with enough volume to matter, not every provider.

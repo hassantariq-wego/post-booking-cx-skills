@@ -34,11 +34,9 @@ rather than only the one you expected.
 Queue rows sort first. The no-queue rows below them are mostly abandoned checkouts, which carry
 most of the volume and almost none of the interest.
 
-The query returns CSV because that is what survives a cell containing a comma, a pipe or a
-newline. Render it as a Markdown pipe table when you show it to a person, picking the rows and
-columns that answer their question rather than passing all of them through. Pad the cells so the
-table is aligned as plain text and renders as a real table in Slack, and escape any pipe inside a
-cell. Do not paste the CSV at someone.
+Render it as a Markdown pipe table when you show it to a person. Pad the cells so the table is aligned as plain text and renders as a real table in Slack, and escape any pipe inside a cell. The query returns CSV because that is what survives a cell containing a comma, a pipe or a newline; do not paste the CSV at someone.
+
+Pick the rows and columns that answer the question rather than passing all of them through.
 
 
 Each row is one GDS and one combination of queues seen at the moment the booking changed state. The queue number names the code path that acted; read it with the table in `../_shared/references/data-sources.md`. The same end state reached through two different queues is two different pieces of code, and that difference is usually the answer.

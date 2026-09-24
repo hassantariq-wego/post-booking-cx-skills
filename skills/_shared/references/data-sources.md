@@ -44,4 +44,13 @@ A booking that ends `CANCELLED / FAILED_TICKETING / VOIDED` through queue 41 and
 
 ## Not in BigQuery
 
-Application exceptions (Datadog, 13-day retention), email delivery (SES), the customer's My Trips activity (front-end tracking tables, not yet verified), Sprinklr cases. Athena and read-only RDS exist but are not reachable from a standard team machine; do not plan on them.
+Naming a gap is only half an answer, so each row says where the answer does live.
+
+| Not here | Where it lives |
+|---|---|
+| Application exceptions and stack traces | Datadog, 13-day retention, and Sentry |
+| Whether an email was delivered, opened or bounced | SES event data. An `EMAIL_LOG` row only proves wego-crm accepted it |
+| Why a CS agent took an action | The Sprinklr case. The admin note records the action, never the reason, so a question about intent ends here and continues with whoever owns that case |
+| What the customer did on My Trips | Front-end tracking tables, not yet verified |
+
+Athena and read-only RDS exist but are not reachable from a standard team machine; do not plan on them.
