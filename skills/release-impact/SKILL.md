@@ -32,7 +32,7 @@ The metrics are booking outcomes, so they answer for wego-fares and flight-integ
 ## Run
 
 ```
-../_shared/scripts/query.sh release_impact.sql "at=2026-09-08 06:17:16" days=7 gds= from_shard=20260901 to_shard=20260915 | python3 ../_shared/scripts/render.py
+../_shared/scripts/query.sh release_impact.sql "at=2026-09-08 06:17:16" days=7 gds= from_shard=20260901 to_shard=20260915
 ```
 
 `from_shard` and `to_shard` must cover the whole before-and-after span. Pass an empty `gds` to mean any. The query counts only bookings where money moved, so abandoned checkouts and card declines do not dilute the rates.
@@ -41,4 +41,15 @@ The metrics are booking outcomes, so they answer for wego-fares and flight-integ
 
 Show the ALL row and the GDS rows with enough volume to matter. Flag a delta only when both periods have the volume to support it; a change from 3 to 6 bookings is noise, say so.
 
-`of_which_emailed` counts cancels with a customer email within an hour of `cancelled_at`. `of_which_no_cancel_time` counts cancels that carry no `cancelled_at` at all; their email coverage cannot be measured, so report them separately rather than folding them into a rate.
+`released_and_emailed` counts bookings with a customer email within an hour of `cancelled_at`.
+
+**The email denominator is `released_money` minus `released_never_cancelled`, never `released_money`
+itself.** `released_money` counts bookings that ended `CANCELLED` **or** `FAILED` with the hold
+released. A FAILED booking was never cancelled, so it has no `cancelled_at`, and the email window is
+measured from that column. Those bookings are `released_never_cancelled`: an expected property, not
+missing data. Sabre is usually almost entirely FAILED, so it reads `released_money` 60,
+`released_and_emailed` 0, `released_never_cancelled` 60. That is 0 of 0 measurable, not a total
+email failure, and reporting it as one is the mistake this column exists to prevent.
+
+Render the result as a table when you show it to a person; the query returns CSV so that a cell
+containing a comma or a pipe survives.
