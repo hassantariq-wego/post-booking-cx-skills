@@ -35,9 +35,9 @@ for kv in "$@"; do
     *) echo "argument '$kv' is not name=value" >&2; exit 1 ;;
   esac
   name="${kv%%=*}"; value="${kv#*=}"
-  # '|| true' matters: under 'set -e' a non-matching grep would abort here, before the
-  # check below could name the offending parameter, leaving the caller with silent exit 1.
-  type=$(grep -E "^-- param: $name " "$sql_file" | awk '{print $4}' | head -1 || true)
+  # Exact match, not a regex: interpolating the name into grep -E let a typo containing a
+  # metacharacter match a real declaration and be misreported as a different parameter.
+  type=$(awk -v n="$name" '$1=="--" && $2=="param:" && $3==n {print $4; exit}' "$sql_file")
   [ -n "$type" ] || {
     echo "unknown parameter '$name' for $sql_file. Declared parameters:" >&2
     grep -E "^-- param: " "$sql_file" | awk '{print "  " $3 " (" $4 ")"}' >&2
@@ -53,12 +53,18 @@ for declared in $(grep -E "^-- param: " "$sql_file" | awk '{print $3}'); do
 done
 
 raw=$(mktemp); err=$(mktemp)
-trap 'rm -f "$raw" "$err"' EXIT
+# Report an abort as a failure. On a 'set -e'/'set -u' abort the EXIT trap runs, its last command
+# (a successful rm) becomes the exit status, and the script reports success. Reading $? in the trap
+# is not enough: bash 3.2, which macOS ships and /usr/bin/env bash resolves to, gives 0 there. So
+# carry an explicit completion flag and treat "aborted with status 0" as a failure.
+finished=0
+trap 'rc=$?; rm -f "$raw" "$err"; if [ "$finished" -ne 1 ] && [ "$rc" -eq 0 ]; then rc=1; fi; exit $rc' EXIT
 
 if ! bq query --project_id="$PROJECT" --use_legacy_sql=false --format=csv \
-       --max_rows="$MAX_ROWS" --quiet "${params[@]}" < "$sql_file" >"$raw" 2>"$err"; then
+       --max_rows="$MAX_ROWS" --quiet ${params[@]+"${params[@]}"} < "$sql_file" >"$raw" 2>"$err"; then
+  # bq reports BigQuery errors on stdout and wrapper errors (expired auth) on stderr, so show both.
   echo "BigQuery query failed:" >&2
-  head -20 "$err" >&2
+  cat "$raw" "$err" 2>/dev/null | grep -v '^Waiting on ' | head -20 >&2
   exit 1
 fi
 
@@ -72,3 +78,5 @@ if [ "$rows" -eq 0 ]; then
 elif [ "$rows" -ge "$MAX_ROWS" ]; then
   echo "WARNING: hit the ${MAX_ROWS}-row cap, so this result is probably truncated. Narrow the filters." >&2
 fi
+
+finished=1

@@ -35,8 +35,10 @@ fi
 if [ $ok -eq 1 ]; then
   # An expired credential still lists as ACTIVE above, so this check is where a lapsed login
   # surfaces. Read the error before blaming permissions: the two need different people.
+  # Combined, not just stderr: bq reports BigQuery errors on stdout and only wrapper errors
+  # such as an expired login on stderr. Capturing stderr alone left this empty for most failures.
   err=$(bq query --project_id="$PROJECT" --use_legacy_sql=false --dry_run --quiet \
-        "SELECT 1 FROM \`$PROJECT.integrated_bookings_flights.queue_events\` LIMIT 1" 2>&1 >/dev/null)
+        "SELECT 1 FROM \`$PROJECT.integrated_bookings_flights.queue_events\` LIMIT 1" 2>&1)
   if [ $? -ne 0 ]; then
     if printf '%s' "$err" | grep -qiE 'reauthentication|invalid_grant|refreshing your current auth|re-?authenticate|credentials have expired'; then
       echo "LOGIN EXPIRED, not an access problem. In a separate terminal (not through the ! prompt):"
