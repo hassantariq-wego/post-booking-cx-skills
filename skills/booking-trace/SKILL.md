@@ -12,7 +12,7 @@ Run `../_shared/scripts/preflight.sh`. It checks `bq`, the gcloud login and read
 ## Run
 
 ```
-../_shared/scripts/query.sh booking_trace.sql ref=WF... from_shard=YYYYMMDD to_shard=YYYYMMDD
+../_shared/scripts/query.sh booking_trace.sql ref=WF... from_shard=YYYYMMDD to_shard=YYYYMMDD | python3 ../_shared/scripts/render.py
 ```
 
 The runner types the named parameters from the SQL header and refuses to run with one missing, which is what stops a forgotten filter from returning a confident wrong answer.

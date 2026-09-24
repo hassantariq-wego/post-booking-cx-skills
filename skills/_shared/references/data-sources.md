@@ -33,7 +33,12 @@ wego-crm answers 200 when the job is queued, not when it is delivered, and answe
 | 41 | Travelport | ops-cancellation sweep. Cancels the booking and voids the hold. Emails the customer **only when the booking ends `CANCELLED` with payment `VOIDED`**, since 23 Sep 2026; before that date it emailed none. A voluntary cancel of an already-ticketed booking reaches the same sweep with payment `CAPTURED` and is deliberately not emailed here |
 | 201 | Sabre | ops-cancellation sweep. Same `CANCELLED` + `VOIDED` gate as queue 41, since PR #3002 (Jul 2025), but **without** queue 41's guard limiting the email to bookings this pass actually cancelled. Sabre drains its queue when it reads it, so a booking is not normally re-presented; Travelport drains after the pass, which is why only that side needed the guard |
 | 203 | Sabre | voluntary exchange |
-| none | LCC and direct | no GDS queue; the success task polls the database |
+| none | LCC and direct | the supplier has no GDS queue at all; the success task polls the database |
+
+**`no_queue_event` in `behavior_trace` is not the same thing as the `none` row above.** The table
+row means the supplier has no queues. The rendered value means no queue event fell in the window
+around the state change, which is `event_at` minus 2 minutes to plus 1 minute. A TRAVELPORT booking
+can show `no_queue_event`; it never has "no GDS queue".
 
 A booking that ends `CANCELLED / FAILED_TICKETING / VOIDED` through queue 41 and one through queue 201 are the same customer outcome produced by different code, which is why the queue column is in `behavior_trace`.
 

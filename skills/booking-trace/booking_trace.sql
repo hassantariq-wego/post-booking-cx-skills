@@ -57,7 +57,9 @@ ordered AS (
 runs AS (
   SELECT *, SUM(starts_run) OVER (ORDER BY ts NULLS FIRST, source, event) AS run_id FROM ordered
 )
-SELECT FORMAT_TIMESTAMP('%Y-%m-%d %H:%M:%S', MIN(ts)) AS utc,
+-- 'current' rather than an empty cell: the itinerary row is present state, not an event, and a
+-- blank timestamp reads as missing data.
+SELECT IFNULL(FORMAT_TIMESTAMP('%Y-%m-%d %H:%M:%S', MIN(ts)), 'current') AS utc,
        ANY_VALUE(source) AS source,
        ANY_VALUE(event) AS event,
        IF(COUNT(*) = 1, ANY_VALUE(detail),

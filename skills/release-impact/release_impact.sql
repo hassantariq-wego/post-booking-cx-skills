@@ -6,10 +6,15 @@
 -- param: to_shard STRING
 -- at = release time in UTC. from_shard/to_shard (YYYYMMDD) must cover at-days .. at+days.
 -- Pass '' for gds to mean "any".
+-- released_money counts booking_status IN ('CANCELLED','FAILED') with payment VOIDED. A FAILED
+-- booking was never cancelled, so it has no cancelled_at: that is released_never_cancelled, and
+-- it is expected, not missing data. released_and_emailed needs cancelled_at to measure a window,
+-- so the email rate's denominator is released_money MINUS released_never_cancelled, never
+-- released_money itself. Sabre is usually almost all FAILED, which is why it can read 0 of 60.
 WITH b AS (
   SELECT DISTINCT b.id, b.booking_ref, i.integration_type, b.booking_status, b.payment_status,
          b.cancellation_reason, b.created_at, b.cancelled_at, b.completed_at,
-         IF(b.created_at < @at, '1 before', '2 after') AS period
+         IF(b.created_at < @at, 'before', 'after') AS period
   FROM `wego-cloud.integrated_bookings_flights.bookings*` b
   JOIN `wego-cloud.integrated_bookings_flights.itineraries*` i
     ON i.booking_id = b.id AND i._TABLE_SUFFIX BETWEEN @from_shard AND @to_shard
@@ -36,15 +41,15 @@ SELECT period, integration_type,
        ROUND(100 * COUNTIF(completed_at IS NOT NULL) / COUNT(*), 1) AS ticketed_pct,
        COUNTIF(booking_status IN ('CANCELLED', 'FAILED') AND cancellation_reason = 'FAILED_TICKETING') AS failed_ticketing,
        COUNTIF(booking_status = 'REVIEW_IN_PROCESS') AS review_in_process,
-       COUNTIF(booking_status = 'TICKETINPROCESS') AS still_ticket_in_process,
-       COUNTIF(booking_status IN ('CANCELLED', 'FAILED') AND payment_status = 'VOIDED') AS cancelled_money_released,
-       COUNTIF(booking_status IN ('CANCELLED', 'FAILED') AND payment_status = 'VOIDED' AND e.cancel_email > 0) AS of_which_emailed,
-       COUNTIF(booking_status IN ('CANCELLED', 'FAILED') AND payment_status = 'VOIDED' AND cancelled_at IS NULL) AS of_which_no_cancel_time,
+       COUNTIF(booking_status = 'TICKETINPROCESS') AS stuck_in_ticketing,
+       COUNTIF(booking_status IN ('CANCELLED', 'FAILED') AND payment_status = 'VOIDED') AS released_money,
+       COUNTIF(booking_status IN ('CANCELLED', 'FAILED') AND payment_status = 'VOIDED' AND e.cancel_email > 0) AS released_and_emailed,
+       COUNTIF(booking_status IN ('CANCELLED', 'FAILED') AND payment_status = 'VOIDED' AND cancelled_at IS NULL) AS released_never_cancelled,
        APPROX_QUANTILES(TIMESTAMP_DIFF(completed_at, created_at, MINUTE), 2)[OFFSET(1)] AS median_minutes_to_ticket
 FROM b LEFT JOIN e USING (booking_ref)
 GROUP BY ROLLUP (period, integration_type)
 HAVING period IS NOT NULL
 )
-SELECT period, IFNULL(integration_type, 'ALL') AS integration_type, * EXCEPT (period, integration_type)
+SELECT period, IFNULL(integration_type, 'ALL') AS provider, * EXCEPT (period, integration_type)
 FROM r
-ORDER BY integration_type IS NULL DESC, paid_bookings DESC, integration_type, period
+ORDER BY integration_type IS NULL DESC, paid_bookings DESC, integration_type, period = 'after'

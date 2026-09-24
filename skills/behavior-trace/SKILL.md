@@ -12,7 +12,7 @@ Run `../_shared/scripts/preflight.sh`. It checks `bq`, the gcloud login and read
 ## Run
 
 ```
-../_shared/scripts/query.sh behavior_trace.sql booking_status=CANCELLED cancellation_reason=FAILED_TICKETING payment_status=VOIDED gds= from_shard=20260601 to_shard=20260918 event_from= event_to=
+../_shared/scripts/query.sh behavior_trace.sql booking_status=CANCELLED cancellation_reason=FAILED_TICKETING payment_status=VOIDED gds= from_shard=20260601 to_shard=20260918 event_from= event_to= | python3 ../_shared/scripts/render.py
 ```
 
 Pass an empty value for `cancellation_reason`, `payment_status`, `gds`, `event_from` or `event_to` to mean any. `from_shard`/`to_shard` bound the booking creation date. The runner refuses a missing parameter, so a forgotten filter cannot become a silent NULL.
@@ -20,7 +20,7 @@ Pass an empty value for `cancellation_reason`, `payment_status`, `gds`, `event_f
 To check whether a release changed behaviour, bound the state change with `event_from` and keep the shards wide enough to still contain those bookings' creation dates:
 
 ```
-../_shared/scripts/query.sh behavior_trace.sql booking_status=CANCELLED cancellation_reason= payment_status= gds=<GDS> from_shard=<YYYYMMDD> to_shard=<YYYYMMDD> "event_from=<YYYY-MM-DD HH:MM:SS+00>" event_to=
+../_shared/scripts/query.sh behavior_trace.sql booking_status=CANCELLED cancellation_reason= payment_status= gds=<GDS> from_shard=<YYYYMMDD> to_shard=<YYYYMMDD> "event_from=<YYYY-MM-DD HH:MM:SS+00>" event_to= | python3 ../_shared/scripts/render.py
 ```
 
 `event_from` is the moment the new version started serving, not the tag or merge time, which run
@@ -30,6 +30,13 @@ output columns as well as filters, so an empty value shows you every outcome the
 rather than only the one you expected.
 
 ## Read the result
+
+The renderer pads every cell and emits a Markdown pipe table, so the same output is aligned in a
+terminal and renders as a real table in Slack. Drop the pipe to get raw CSV.
+
+Queue rows sort first. The no-queue rows below them are mostly abandoned checkouts, which carry
+most of the volume and almost none of the interest.
+
 
 Each row is one GDS and one combination of queues seen at the moment the booking changed state. The queue number names the code path that acted; read it with the table in `../_shared/references/data-sources.md`. The same end state reached through two different queues is two different pieces of code, and that difference is usually the answer.
 

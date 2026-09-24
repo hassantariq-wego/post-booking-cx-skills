@@ -16,6 +16,12 @@
 -- one queue routinely carries several outcomes and a combined row hides which is which.
 -- example_refs gives up to 5 booking references per row so a surprising row can be opened
 -- in booking-trace without dropping to hand-written SQL.
+-- emailed_ever_before is UNBOUNDED (any EMAIL_LOG before the state change, usually an earlier
+-- e-ticket or confirmation); emailed_1h_after is capped at 60 minutes. The windows differ.
+-- Both, and every departs_* column, are measured from event_at =
+-- COALESCE(cancelled_at, completed_at, updated_at). queues counts queue events in the window
+-- event_at minus 2 minutes to event_at plus 1 minute, so 'no_queue_event' is a statement about
+-- that window, NOT about the supplier having no queues.
 WITH b0 AS (
   SELECT DISTINCT b.id, b.booking_ref, i.integration_type,
          b.cancellation_reason, b.payment_status,
@@ -36,7 +42,7 @@ b AS (
 ),
 q AS (
   SELECT b.booking_ref,
-         STRING_AGG(DISTINCT CAST(qe.queue_number AS STRING) ORDER BY CAST(qe.queue_number AS STRING)) AS queues_at_event
+         STRING_AGG(DISTINCT CAST(qe.queue_number AS STRING), ' ' ORDER BY CAST(qe.queue_number AS STRING)) AS queues_at_event
   FROM b JOIN `wego-cloud.integrated_bookings_flights.queue_events` qe
     ON qe.booking_id = b.id
    AND qe.created_at BETWEEN TIMESTAMP_SUB(b.event_at, INTERVAL 2 MINUTE) AND TIMESTAMP_ADD(b.event_at, INTERVAL 1 MINUTE)
@@ -59,13 +65,13 @@ d AS (
     ON l.itinerary_id = i.id AND l._TABLE_SUFFIX BETWEEN @from_shard AND @to_shard
   GROUP BY 1
 )
-SELECT b.integration_type,
-       IFNULL(q.queues_at_event, 'none') AS queues_at_event,
-       IFNULL(b.cancellation_reason, 'none') AS cancellation_reason,
-       IFNULL(b.payment_status, 'none') AS payment_status,
+SELECT b.integration_type AS gds,
+       IFNULL(q.queues_at_event, 'no_queue_event') AS queues,
+       IFNULL(b.cancellation_reason, 'none') AS reason,
+       IFNULL(b.payment_status, 'none') AS payment,
        COUNT(*) AS bookings,
-       COUNTIF(e.emails_before > 0) AS had_email_before,
-       COUNTIF(e.emails_within_1h_after > 0) AS email_within_1h_after,
+       COUNTIF(e.emails_before > 0) AS emailed_ever_before,
+       COUNTIF(e.emails_within_1h_after > 0) AS emailed_1h_after,
        COUNTIF(TIMESTAMP_DIFF(d.first_departure, b.event_at, HOUR) BETWEEN 0 AND 23) AS departs_under_1d,
        COUNTIF(TIMESTAMP_DIFF(d.first_departure, b.event_at, HOUR) BETWEEN 24 AND 167) AS departs_1_to_7d,
        COUNTIF(TIMESTAMP_DIFF(d.first_departure, b.event_at, HOUR) >= 168) AS departs_over_7d,
@@ -76,4 +82,6 @@ LEFT JOIN q USING (booking_ref)
 LEFT JOIN e USING (booking_ref)
 LEFT JOIN d USING (booking_ref)
 GROUP BY 1, 2, 3, 4
-ORDER BY bookings DESC
+-- Rows that reached a GDS queue first: they are the ones anyone is looking for, and the
+-- no-queue rows are mostly abandoned checkouts that would otherwise bury them by volume.
+ORDER BY queues = 'no_queue_event', bookings DESC

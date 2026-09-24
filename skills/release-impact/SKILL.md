@@ -32,7 +32,7 @@ The metrics are booking outcomes, so they answer for wego-fares and flight-integ
 ## Run
 
 ```
-../_shared/scripts/query.sh release_impact.sql "at=2026-09-08 06:17:16" days=7 gds= from_shard=20260901 to_shard=20260915
+../_shared/scripts/query.sh release_impact.sql "at=2026-09-08 06:17:16" days=7 gds= from_shard=20260901 to_shard=20260915 | python3 ../_shared/scripts/render.py
 ```
 
 `from_shard` and `to_shard` must cover the whole before-and-after span. Pass an empty `gds` to mean any. The query counts only bookings where money moved, so abandoned checkouts and card declines do not dilute the rates.
