@@ -21,7 +21,7 @@ The shards bound every sharded table by date. Created date to 45 days after it i
 
 ## Read the result
 
-Render the timeline as a table when you show it to a person, escaping any pipe inside a cell; admin notes contain them. The query returns CSV precisely so those survive. Present it as returned. It already collapses repeated polling into one row. The first row has no timestamp: it is the itinerary's current state, not an event, so keep it as the header of the table.
+Render the timeline as a table when you show it to a person, escaping any pipe inside a cell; admin notes contain them. The query returns CSV precisely so those survive. Present it as returned. It already collapses repeated polling into one row. The first row's `utc` reads `current`: it is the itinerary's present state, not an event, so keep it as the header of the table.
 
 Two things need `../_shared/references/data-sources.md` to read correctly: the queue number of the event that changed the booking names the code path that acted, and its table says which paths email the customer; and an `EMAIL_LOG` row is an email handed to wego-crm, which proves less than it looks.
 
