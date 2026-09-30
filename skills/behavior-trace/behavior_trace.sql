@@ -18,6 +18,13 @@
 -- in booking-trace without dropping to hand-written SQL.
 -- emailed_ever_before is UNBOUNDED (any EMAIL_LOG before the state change, usually an earlier
 -- e-ticket or confirmation); emailed_1h_after is capped at 60 minutes. The windows differ.
+-- emailed_1h_after opens 5 MINUTES BEFORE event_at, not at it. On paths that send the email and
+-- then write cancelled_at, the two land a second or two apart in the wrong order, and a window
+-- starting exactly at event_at reported those bookings as never emailed. Measured 2026-09-30:
+-- ONEFLY read 18 of 36 emailed and is really 36 of 36; ATLAS 6 of 9 and is 9 of 9. Sabre and
+-- Travelport were unaffected because their sweeps email after the cancel, which is why the
+-- artefact looked like a low-cost-carrier problem. emails_before excludes the same window so
+-- the two columns cannot both count one email.
 -- Both, and every departs_* column, are measured from event_at =
 -- COALESCE(cancelled_at, completed_at, updated_at). queues counts queue events in the window
 -- event_at minus 2 minutes to event_at plus 1 minute, so 'no_queue_event' is a statement about
@@ -50,8 +57,9 @@ q AS (
 ),
 e AS (
   SELECT b.booking_ref,
-         COUNTIF(x.requested_at < b.event_at) AS emails_before,
-         COUNTIF(x.requested_at BETWEEN b.event_at AND TIMESTAMP_ADD(b.event_at, INTERVAL 60 MINUTE)) AS emails_within_1h_after
+         COUNTIF(x.requested_at < TIMESTAMP_SUB(b.event_at, INTERVAL 5 MINUTE)) AS emails_before,
+         COUNTIF(x.requested_at BETWEEN TIMESTAMP_SUB(b.event_at, INTERVAL 5 MINUTE)
+                                    AND TIMESTAMP_ADD(b.event_at, INTERVAL 60 MINUTE)) AS emails_within_1h_after
   FROM b LEFT JOIN `wego-cloud.integrated_bookings_flights.provider_exchange_logs*` x
     ON x.wego_ref = b.booking_ref AND x.type = 'EMAIL_LOG'
    AND x._TABLE_SUFFIX BETWEEN @from_shard AND FORMAT_DATE('%Y%m%d', DATE_ADD(PARSE_DATE('%Y%m%d', @to_shard), INTERVAL 45 DAY))

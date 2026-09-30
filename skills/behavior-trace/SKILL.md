@@ -47,6 +47,11 @@ Queue 41 mixes ticketing failures that are emailed with voluntary cancels that a
 those as one population reports a false gap. `example_refs` gives up to five booking references per
 row, so a surprising row goes straight into `booking-trace`.
 
-The email columns count `EMAIL_LOG` rows, emails handed to wego-crm, before the event and within an hour after it. The reference says what that does and does not prove. The departure columns say how many customers had a flight within a day, within a week, or later.
+The email columns count `EMAIL_LOG` rows, emails handed to wego-crm, before the event and within an
+hour after it. That second window opens 5 minutes **before** `event_at`, because some paths send
+the email and then write the cancellation timestamp, landing the two a second apart in the wrong
+order. Without the tolerance those bookings read as never emailed: ONEFLY showed 18 of 36 when
+the true figure was 36 of 36. Treat a reported gap on a supplier with no queue event as suspect
+until you have traced one booking. The reference says what that does and does not prove. The departure columns say how many customers had a flight within a day, within a week, or later.
 
 Treat small rows as noise. A row of 5 bookings does not support a rate.
