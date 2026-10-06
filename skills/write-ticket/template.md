@@ -9,10 +9,8 @@ Project: PBC · Repo: <owner/repo> · Priority: <P1/P2> · Parent: <PBC-xx or no
 <One paragraph. Who the customer is, what they were told, what happened instead. Name the
 supplier, the queue, the end states, the email type. No file names.>
 
-<The numbers. Each with its window and where it was measured:
-"<count> bookings ended <state> between <date> and <date>, <count> emailed. Source: <report>.">
-
-<Reference cases, as links: [WF...](https://backoffice.wego.net/flights/bookings/v2/WF...), <date>, <cost>.>
+<One sizing line: "<count> bookings ended <state> between <date> and <date>, <count> emailed.
+Source: <tool or query>.">
 
 ## Why
 
@@ -36,6 +34,7 @@ pattern and its condition.">
 ## Done when
 
 - On staging: <the observable event, within <time> of <trigger>>.
+- Before: <the detailed numbers, one line per row that the fix should move>.
 - In production, <n> days after release: <the measurement>, from about <before> to about <after>.
   Check with `behavior-trace` or `release-impact`, or the query in the report.
 
@@ -44,3 +43,5 @@ pattern and its condition.">
 - Report: <link>
 - Threads: <link>, <link>
 - Precedent: wego-fares PR #<n>
+- Reference bookings: [WF...](https://backoffice.wego.net/flights/bookings/v2/WF...), <date>, <cost>
+- Checked at: <repo>@<commit>, one line per repo
