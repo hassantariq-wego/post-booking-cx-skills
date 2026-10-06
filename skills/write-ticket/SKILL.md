@@ -73,7 +73,17 @@ Every hit is a line to rewrite in the words of section 3. Zero hits before filin
 
 ## 5. Updating an existing ticket
 
-Edit in place. Never rewrite from scratch.
+Before touching it, ask the person once: **update in place, or rewrite from scratch?** Say which
+you recommend and why. Recommend a rewrite when the existing ticket is not in the six-section
+template, or when the scope changed so much that in-place edits would leave it longer than 80
+lines; otherwise recommend in place. This is the one question section 6 allows.
+
+**Rewrite from scratch:** write a fresh ticket from `template.md` under the same key. Put one line
+at the top: `> Rewritten <date>: <what changed and why, one sentence>.` Carry over every fact,
+decision and Out of scope line from the old version that still holds; drop one only if a source
+says it is wrong, and name what you dropped in that line. The title may change.
+
+**Update in place:** edit the existing text. Never restructure it.
 
 1. Add one line at the top: `> Updated <date>: <what changed and why, one sentence>.`
 2. Keep the title unless the scope genuinely changed. If it changed, say so in the update line.
@@ -110,4 +120,6 @@ over the Markdown body.
 - [ ] Leak scan returns nothing.
 - [ ] Every unacted source finding is under Out of scope with a pointer.
 - [ ] Done when names the tool that measures it.
+- [ ] If an existing ticket: asked "update in place or rewrite from scratch?" before editing.
 - [ ] If updating: one dated line at the top, title and prior decisions kept or the change named.
+- [ ] If rewriting: one "Rewritten" line at the top; every still-valid fact and decision carried over.
