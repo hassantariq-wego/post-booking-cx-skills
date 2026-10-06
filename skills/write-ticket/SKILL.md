@@ -34,8 +34,8 @@ Use `template.md` in this folder. Six sections, in this order. Nothing else.
 
 Length: 40 to 80 lines. If it is longer, you are writing a plan, not a ticket.
 
-Work in two or more repos is a parent plus one sub-task per repo, each in this template. The
-parent says the order and whether they ship together.
+Work in two or more repos stays one ticket. Change becomes a Repo | Change table, one row per
+repo, then the order they ship in. Shared facts are written once, never per repo.
 
 ## 3. Name things that do not move
 
@@ -104,7 +104,7 @@ says it is wrong, and name what you dropped in that line. The title may change.
 4. A scope decision from the previous version (for example "the catch-all is a separate ticket")
    stays unless the new instruction reverses it. If it reverses it, write the reversal and the
    old reason next to each other.
-5. Do not split one ticket into a parent and sub-tasks unless the work lands in two repos.
+5. Do not split one ticket into a parent and sub-tasks.
 
 ## 6. Keep it cheaper than the fix
 
