@@ -11,8 +11,9 @@ One rule for this repo: everything in it must earn its place. A skill goes in wh
 | [`booking-trace`](skills/booking-trace/SKILL.md) | What happened to one booking, every event in order |
 | [`behavior-trace`](skills/behavior-trace/SKILL.md) | What happened next to every booking that ended in a state over a period |
 | [`release-impact`](skills/release-impact/SKILL.md) | Whether a release changed post-booking outcomes, before versus after |
+| [`write-ticket`](skills/write-ticket/SKILL.md) | A Jira ticket a fresh AI session can fix from, after an investigation |
 
-All three read BigQuery `wego-cloud.integrated_bookings_flights` through the shared runner in `skills/_shared`, which also holds the preflight check and the data reference.
+The three trace skills read BigQuery `wego-cloud.integrated_bookings_flights` through the shared runner in `skills/_shared`, which also holds the preflight check and the data reference.
 
 ## Use it
 
@@ -20,7 +21,7 @@ Claude Code: symlink the skills into your own skills folder, then ask the questi
 
 ```
 repo=$(git rev-parse --show-toplevel) && mkdir -p ~/.claude/skills &&
-for s in booking-trace behavior-trace release-impact; do ln -sfn "$repo/skills/$s" ~/.claude/skills/$s; done
+for s in booking-trace behavior-trace release-impact write-ticket; do ln -sfn "$repo/skills/$s" ~/.claude/skills/$s; done
 ```
 
 The first run tells you what to connect. Currently that is the Google Cloud SDK signed in to `wego-cloud`.
