@@ -88,7 +88,7 @@ bug, written into Why with both sides, or a question for the requester. Do not f
 Before touching it, ask the person once: **update in place, or rewrite from scratch?** Say which
 you recommend and why. Recommend a rewrite when the existing ticket is not in the six-section
 template, or when the scope changed so much that in-place edits would leave it longer than 80
-lines; otherwise recommend in place. This is the one question section 6 allows.
+lines; otherwise recommend in place.
 
 **Rewrite from scratch:** write a fresh ticket from `template.md` under the same key. Put one line
 at the top: `> Rewritten <date>: <what changed and why, one sentence>.` Carry over every fact,
@@ -109,7 +109,8 @@ says it is wrong, and name what you dropped in that line. The title may change.
 ## 6. Keep it cheaper than the fix
 
 - Ask no question the sources already answer. Read them first.
-- Ask at most one question, and only if the answer changes what gets built.
+- Ask at most one question about what gets built, and only if the answer changes it. The
+  update-or-rewrite question in section 5 is the only other one.
 - No epic: PBC has none. Ask for a parent ticket or none.
 
 ## 7. File it
