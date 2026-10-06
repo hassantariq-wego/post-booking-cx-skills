@@ -1,6 +1,6 @@
 # <What the customer sees go wrong, in one line>
 
-Project: PBC · Repo: <owner/repo> · Priority: <P1/P2> · Parent: <PBC-xx or none>
+Project: PBC · Repo: <owner/repo, comma-separated if several> · Priority: <P1/P2> · Parent: <PBC-xx or none>
 
 > Updated <date>: <only when updating an existing ticket; what changed and why>
 
