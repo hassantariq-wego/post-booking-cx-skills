@@ -33,26 +33,33 @@ if [ $ok -eq 1 ]; then
 fi
 
 if [ $ok -eq 1 ]; then
+  # Two datasets: the booking mirror that every skill reads, and the Genzo tracking tables that
+  # release-impact reads for front-end releases. A reader account can have one without the other
+  # (seen with a service account), so each is checked and named on its own.
   # An expired credential still lists as ACTIVE above, so this check is where a lapsed login
   # surfaces. Read the error before blaming permissions: the two need different people.
   # Combined, not just stderr: bq reports BigQuery errors on stdout and only wrapper errors
   # such as an expired login on stderr. Capturing stderr alone left this empty for most failures.
-  err=$(bq query --project_id="$PROJECT" --use_legacy_sql=false --dry_run --quiet \
-        "SELECT 1 FROM \`$PROJECT.integrated_bookings_flights.queue_events\` LIMIT 1" 2>&1)
-  if [ $? -ne 0 ]; then
-    if printf '%s' "$err" | grep -qiE 'reauthentication|invalid_grant|refreshing your current auth|re-?authenticate|credentials have expired'; then
-      echo "LOGIN EXPIRED, not an access problem. In a separate terminal (not through the ! prompt):"
-      echo "  gcloud auth login --update-adc"
-    elif printf '%s' "$err" | grep -qiE 'permission|access denied|not authorized|forbidden|404|not found'; then
-      echo "NO ACCESS to $PROJECT.integrated_bookings_flights with $account. Ask IT Ops for BigQuery read access to wego-cloud."
+  for probe in "integrated_bookings_flights.queue_events" "services_genzo.pages_views*"; do
+    dataset="${probe%%.*}"
+    err=$(bq query --project_id="$PROJECT" --use_legacy_sql=false --dry_run --quiet \
+          "SELECT 1 FROM \`$PROJECT.$probe\` LIMIT 1" 2>&1)
+    if [ $? -ne 0 ]; then
+      if printf '%s' "$err" | grep -qiE 'reauthentication|invalid_grant|refreshing your current auth|re-?authenticate|credentials have expired'; then
+        echo "LOGIN EXPIRED, not an access problem. In a separate terminal (not through the ! prompt):"
+        echo "  gcloud auth login --update-adc"
+        ok=0; break
+      elif printf '%s' "$err" | grep -qiE 'permission|access denied|not authorized|forbidden|404|not found'; then
+        echo "NO ACCESS to $PROJECT.$dataset with $account. Ask IT Ops for BigQuery read access (Data Viewer) on that dataset in wego-cloud."
+      else
+        echo "BIGQUERY CHECK FAILED on $PROJECT.$dataset with $account, cause not recognised. Raw error:"
+        printf '%s\n' "$err" | head -5 | sed 's/^/  /'
+      fi
+      ok=0
     else
-      echo "BIGQUERY CHECK FAILED with $account, cause not recognised. Raw error:"
-      printf '%s\n' "$err" | head -5 | sed 's/^/  /'
+      echo "bigquery: $PROJECT.$dataset readable"
     fi
-    ok=0
-  else
-    echo "bigquery: $PROJECT.integrated_bookings_flights readable"
-  fi
+  done
 fi
 
 [ $ok -eq 1 ] && echo "ready" && exit 0
