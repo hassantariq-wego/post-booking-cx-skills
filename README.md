@@ -10,10 +10,10 @@ One rule for this repo: everything in it must earn its place. A skill goes in wh
 |---|---|
 | [`booking-trace`](skills/booking-trace/SKILL.md) | What happened to one booking, every event in order |
 | [`behavior-trace`](skills/behavior-trace/SKILL.md) | What happened next to every booking that ended in a state over a period |
-| [`release-impact`](skills/release-impact/SKILL.md) | Whether a release changed post-booking outcomes, before versus after |
+| [`release-impact`](skills/release-impact/SKILL.md) | Whether a release changed post-booking outcomes, before versus after: booking outcomes for the backends, My Trips Download and Resend taps for the web and app front ends |
 | [`write-ticket`](skills/write-ticket/SKILL.md) | A Jira ticket a fresh AI session can fix from, after an investigation |
 
-The three trace skills read BigQuery `wego-cloud.integrated_bookings_flights` through the shared runner in `skills/_shared`, which also holds the preflight check and the data reference.
+The three trace skills read BigQuery `wego-cloud.integrated_bookings_flights`, and release-impact also `wego-cloud.services_genzo`, through the shared runner in `skills/_shared`, which also holds the preflight check and the data reference.
 
 ## Use it
 
@@ -28,4 +28,4 @@ The first run tells you what to connect. Currently that is the Google Cloud SDK 
 
 ## Repos in scope
 
-wego-fares, flight-integrations, roxana, olympias, orchard, wego-ai. Release-impact metrics exist today for the first two; the front-end and CS repos resolve a release time but their customer-visible effect lives in tables not yet wired in.
+wego-fares, flight-integrations, roxana, olympias, orchard, wego-ai. Release-impact metrics exist for the first five; wego-ai resolves a release time but its customer-visible effect lives in Sprinklr, not yet wired in.
