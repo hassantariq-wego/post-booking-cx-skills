@@ -1,13 +1,19 @@
 ---
 name: write-ticket
-description: Write or update a Jira ticket for a post-booking CX bug so that a fresh AI session, with no memory of the investigation, fixes the right thing in the right place from the ticket alone. Use after an investigation when someone says "write the ticket", "create a ticket for this", "update the ticket", or hands over a report or Slack thread to turn into a ticket. Produces a Markdown ticket body; filing to Jira is the last step and can be skipped.
+description: Write or update a Jira ticket for post-booking CX work (a bug, a feature, or any change) so that people can review it quickly and a fresh AI session, with no memory of the investigation, builds the right thing in the right place from the ticket alone. Use after an investigation when someone says "write the ticket", "create a ticket for this", "update the ticket", or hands over a report or Slack thread to turn into a ticket. Produces a Markdown ticket body; filing to Jira is the last step and can be skipped.
 ---
 
 # Write a ticket that fixes first time
 
-A ticket has one reader: an AI session that did not do the investigation. It must find the code
-to change and the pattern to copy from the ticket alone, and it must not have to redo any work the
-investigation already did. Everything below serves that reader.
+A ticket has two readers, in this order. People review it first: they must see what is wrong or
+wanted, what the customer will see, and what is still undecided, in plain words and without
+reading code names. Then an AI session that did not do the investigation builds from it: it must
+find the code to change and the pattern to copy from the ticket alone, without redoing work the
+investigation already did. The top of the ticket serves people; "Notes for the builder" at the
+bottom serves the AI session.
+
+Do not label the work as a bug, a feature or anything else, and do not ask. Every ticket uses the
+same shape; fill the sections the work needs and leave out the rest.
 
 ## 1. Gather, then search for an existing ticket
 
@@ -21,21 +27,25 @@ investigation already did. Everything below serves that reader.
 
 ## 2. Fill the template
 
-Use `template.md` in this folder. Six sections, in this order. Nothing else.
+Use `template.md` in this folder. These sections, in this order. Leave out a section the work
+does not need (a bug may have no open decisions; new work may have no cause). Nothing else.
 
 | Section | What goes in it | Rule |
 |---|---|---|
-| What's broken | The customer-visible failure in one paragraph, then one sizing line | The sizing line carries its window and the tool or query that produced it, so it can be re-run |
-| Why | The cause in domain words, and the precedent if one exists | Name the twin fix by PR number and say "copy that pattern and its condition" |
-| Change | Numbered deliverables, each one testable | Say what changes and where, by what the code does, never by file or line |
+| Problem | What the customer sees go wrong, or cannot do today, in one paragraph, then one sizing line | Plain words. The sizing line carries its window and the tool or query that produced it, so it can be re-run; if nothing measured it, say so |
+| Cause | Why it happens, in domain words, and the precedent if one exists | Name the twin fix by PR number and say "copy that pattern and its condition" |
+| Scope | What this ticket covers, when that is not obvious from Problem | A small table when the work has levels, channels or variants |
+| Behaviour | One Given / When / Then row per case, decided cases only | Each row stands alone: no "see item 4". Put the exact customer-facing reply in the row when there is one |
+| Open decisions | Everything the build needs that no source decided | Decision \| Proposal \| Decided by. Fill "Decided by" only when a source names the person; otherwise leave it empty and the builder proposes in the PR |
 | Out of scope | Every finding from the sources this ticket does not act on | One line each, with "separate ticket", "separate investigation", or "with <team>" |
 | Done when | A staging check and a production measurement | The detailed numbers live here as the before. Name the tool that measures it (`behavior-trace`, `release-impact`, or the report's query) |
+| Notes for the builder | The code-level facts the build needs: state values, rule and handoff names, every place that must change with it | Last before Sources, so people can stop reading above it |
 | Sources | The report, every thread, the precedent PR, the reference bookings | Links, one per line, and the commit checked in each repo. Booking refs link to the CS admin tool |
 
 Length: 40 to 80 lines. If it is longer, you are writing a plan, not a ticket.
 
-Work in two or more repos stays one ticket. Change becomes a Repo | Change table, one row per
-repo, then the order they ship in. Shared facts are written once, never per repo.
+Work in two or more repos stays one ticket. Notes for the builder gains a Repo | Change table,
+one row per repo, then the order they ship in. Shared facts are written once, never per repo.
 
 ## 3. Name things that do not move
 
@@ -51,6 +61,10 @@ Say "the Sabre cancellation sweep's final step" not `SabreCancellationAndRefundT
 A fresh session finds the first with one grep on `CANCEL_PNR`. The second is wrong the day the
 method is renamed.
 
+Above Notes for the builder, write for people: say "the bot hands off because no booking was
+found", not the handoff code. Put the code-level values (states, rule names, handoff codes) in
+Notes for the builder. The banned column applies everywhere, Notes included.
+
 ## 4. Check the ticket against its sources, then against the code
 
 Do this after writing, before filing.
@@ -62,10 +76,14 @@ Do this after writing, before filing.
 3. Quote facts exactly. If the report says "the ticket emails for Umrah bookings are suppressed",
    do not write "Umrah bookings are suppressed".
 4. Do not add requirements no source states. Retries, idempotency, observability, or "cover every
-   path" go in only if a source asked for them. A change the fix needs that no source decided is
-   marked "proposed" in Change, and it is your one question.
+   path" go in only if a source asked for them. A change the build needs that no source decided
+   goes in Open decisions with your proposal, never in Behaviour.
 5. Do not tell the reader to enumerate, explore, or investigate what a source already enumerated.
    Put the enumeration in the ticket.
+6. Look for what is missing, not only what is wrong. For each value, field or behaviour the ticket
+   changes, find every place that reads it, branches on it or shows it to the customer: every
+   consumer, every reply or template that exposes it, replay or snapshot paths, and test-only or
+   sandbox paths. Each one is in Notes for the builder, or under Out of scope with a pointer.
 
 Then run the leak scan:
 
@@ -81,13 +99,15 @@ must find the code to change, and for every claim return the repo, the commit, a
 short code quote as evidence. One sub-agent per repo; a claim about the contract between two
 repos goes to one sub-agent that reads both sides. Put the results side by side unchanged, never
 merged into a summary. A contradicted claim is corrected; two repos that disagree are either the
-bug, written into Why with both sides, or a question for the requester. Do not file around one.
+cause, written into Cause with both sides, or a question for the requester. Do not file around one.
+Ask each sub-agent one more question: what else must change for this to work that the ticket does
+not mention? Each answer goes into the ticket or under Out of scope.
 
 ## 5. Updating an existing ticket
 
 Before touching it, ask the person once: **update in place, or rewrite from scratch?** Say which
-you recommend and why. Recommend a rewrite when the existing ticket is not in the six-section
-template, or when the scope changed so much that in-place edits would leave it longer than 80
+you recommend and why. Recommend a rewrite when the existing ticket is not in the shape of
+`template.md`, or when the scope changed so much that in-place edits would leave it longer than 80
 lines; otherwise recommend in place.
 
 **Rewrite from scratch:** write a fresh ticket from `template.md` under the same key. Put one line
@@ -109,9 +129,10 @@ says it is wrong, and name what you dropped in that line. The title may change.
 ## 6. Keep it cheaper than the fix
 
 - Ask no question the sources already answer. Read them first.
-- Ask at most one question about what gets built, and only if the answer changes it. The
-  update-or-rewrite question in section 5 is the only other one.
-- No epic: PBC has none. Ask for a parent ticket or none.
+- Do not ask the requester to settle open decisions. They go in the Open decisions table with a
+  proposal, for the reviewers. Ask the requester only when the answer changes what the ticket
+  covers, and at most once. The update-or-rewrite question in section 5 is the only other one.
+- Ask for a parent (an Epic or another ticket) or none.
 
 ## 7. File it
 
@@ -126,11 +147,14 @@ With no one to answer (Anya in draft mode, or no write access), stop and hand ov
 ## Before you say done
 
 - [ ] Existing ticket searched, including Done.
-- [ ] Six sections, 40 to 80 lines.
+- [ ] Sections in template order, only the ones the work needs, 40 to 80 lines.
+- [ ] Nothing above Notes for the builder needs code knowledge to read.
+- [ ] Behaviour holds decided cases only, as standalone Given / When / Then rows; everything undecided is in Open decisions, "Decided by" filled only from a source.
 - [ ] Every number has a window and a source. Every quote matches the source.
 - [ ] Precedent named by PR number, if one exists.
 - [ ] Leak scan hits resolved.
 - [ ] Cold check run per repo at a named commit; no contradicted claim left.
+- [ ] Every place that reads, branches on or shows a changed value is in the ticket or under Out of scope.
 - [ ] Filed only after an explicit yes.
 - [ ] Every unacted source finding is under Out of scope with a pointer.
 - [ ] Done when names the tool that measures it.

@@ -1,29 +1,43 @@
-# <What the customer sees go wrong, in one line>
+# <What the customer sees go wrong, or will be able to do, in one line>
 
 Project: PBC · Repo: <owner/repo, comma-separated if several> · Priority: <P1/P2> · Parent: <PBC-xx or none>
 
 > Updated <date>: <only when updating an existing ticket; what changed and why>
 
-## What's broken
+<Leave out any section the work does not need. Keep the order.>
 
-<One paragraph. Who the customer is, what they were told, what happened instead. Name the
-supplier, the queue, the end states, the email type. No file names.>
+## Problem
+
+<One paragraph in plain words. Who the customer is, what they were told or tried, what happened
+instead or what they cannot do today. No code names.>
 
 <One sizing line: "<count> bookings ended <state> between <date> and <date>, <count> emailed.
-Source: <tool or query>.">
+Source: <tool or query>." If nothing measured it, say so and why.>
 
-## Why
+## Cause
 
-<The cause in domain words: which job or path ends the booking and does not send the email.>
+<Why it happens, in domain words: which job or path ends the booking and does not send the email.>
 
 <The precedent: "The <twin job> gained this step in <month year>, wego-fares PR #<n>. Copy that
 pattern and its condition.">
 
-## Change
+## Scope
 
-1. <Deliverable one. What changes, named by what the code does. The condition, copied from the precedent.>
-2. <Deliverable two, if any. Rules that must not change, for example existing suppression.>
-3. <Tests: one line per case, as behaviour, not method names.>
+<Only when Problem does not make it obvious. A small table when the work has levels, channels or
+variants.>
+
+## Behaviour
+
+| Given | When | Then |
+|---|---|---|
+| <the state, in plain words> | <what the customer or the job does> | <what happens, with the exact customer-facing reply in quotes when there is one> |
+| <Rules that must not change get a row too, for example existing suppression.> | | |
+
+## Open decisions
+
+| Decision | Proposal | Decided by |
+|---|---|---|
+| <what the build needs that no source decided> | <your proposal> | <a person only if a source names them; otherwise empty> |
 
 ## Out of scope
 
@@ -33,10 +47,17 @@ pattern and its condition.">
 
 ## Done when
 
-- On staging: <the observable event, within <time> of <trigger>>.
-- Before: <the detailed numbers, one line per row that the fix should move>.
+- On staging: <the observable event, within <time> of <trigger>; each Behaviour row holds>.
+- Before: <the detailed numbers, one line per row that the change should move>.
 - In production, <n> days after release: <the measurement>, from about <before> to about <after>.
   Check with `behavior-trace` or `release-impact`, or the query in the report.
+
+## Notes for the builder
+
+- <Code-level facts: the state values, rule and handoff names, the condition copied from the precedent.>
+- <Every place that reads, branches on or shows a changed value, and what each needs.>
+- <Tests, as behaviour, one line per case, when Behaviour does not already cover them.>
+- <Several repos: a Repo | Change table, one row per repo, then the order they ship in.>
 
 ## Sources
 

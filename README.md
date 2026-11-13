@@ -11,7 +11,7 @@ One rule for this repo: everything in it must earn its place. A skill goes in wh
 | [`booking-trace`](skills/booking-trace/SKILL.md) | What happened to one booking, every event in order |
 | [`behavior-trace`](skills/behavior-trace/SKILL.md) | What happened next to every booking that ended in a state over a period |
 | [`release-impact`](skills/release-impact/SKILL.md) | Whether a release changed post-booking outcomes, before versus after: booking outcomes for the backends, My Trips Download and Resend taps for the web and app front ends |
-| [`write-ticket`](skills/write-ticket/SKILL.md) | A Jira ticket a fresh AI session can fix from, after an investigation |
+| [`write-ticket`](skills/write-ticket/SKILL.md) | A Jira ticket people can review and a fresh AI session can build from, for a bug, a feature or any change |
 
 The three trace skills read BigQuery `wego-cloud.integrated_bookings_flights`, and release-impact also `wego-cloud.services_genzo`, through the shared runner in `skills/_shared`, which also holds the preflight check and the data reference.
 
