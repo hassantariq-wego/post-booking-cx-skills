@@ -69,7 +69,7 @@ if ! bq query --project_id="$PROJECT" --use_legacy_sql=false --format=csv \
   echo "BigQuery query failed:" >&2
   cat "$raw" "$err" 2>/dev/null | grep -v '^Waiting on ' | head -20 >&2
   if cat "$raw" "$err" 2>/dev/null | grep -qi 'bytes billed'; then
-    echo "The query would scan more than 250 GB, the limit this script sets. Narrow the shard or date range." >&2
+    echo "The query would scan more than $((MAX_BYTES / 1000000000)) GB, the limit this script sets. Narrow the shard or date range." >&2
   fi
   exit 1
 fi

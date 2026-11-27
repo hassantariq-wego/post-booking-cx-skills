@@ -42,7 +42,7 @@ events AS (
   FROM `wego-cloud.integrated_bookings_flights.booking_admin_notes` n
   WHERE n.booking_id IN (SELECT id FROM b)
   UNION ALL
-  SELECT l.scd_dep_date_time_utc, 'flight', 'departure', CONCAT(IFNULL(l.departure_airport_code, '?'), '-', IFNULL(l.arrival_airport_code, '?'), ' · leg ', IFNULL(l.status, '-'))
+  SELECT l.scd_dep_date_time_utc, 'flight', 'departure', CONCAT(IFNULL(l.departure_airport_code, '-'), '-', IFNULL(l.arrival_airport_code, '-'), ' · leg ', IFNULL(l.status, '-'))
   FROM `wego-cloud.integrated_bookings_flights.legs*` l
   WHERE l._TABLE_SUFFIX BETWEEN @from_shard AND @to_shard AND l.itinerary_id IN (SELECT itinerary_id FROM i)
   UNION ALL
