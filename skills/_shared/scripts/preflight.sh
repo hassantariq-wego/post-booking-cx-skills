@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify everything post-booking-check needs, and print the exact fix for anything missing.
+# Verify everything behavior-trace, booking-trace and release-impact need, and print the exact fix for anything missing.
 # Exit 0 = ready. Exit 1 = something to fix (already printed).
 set -u
 

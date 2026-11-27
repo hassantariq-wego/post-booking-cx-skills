@@ -7,7 +7,7 @@ Answer shape: one or two lines that answer the question, the table, one line nam
 
 ## Before running
 
-Run `../_shared/scripts/preflight.sh`. It checks `bq`, the gcloud login and read access to `wego-cloud.integrated_bookings_flights`, and prints the exact command for anything missing. Show that command to the user and stop until they have run it.
+Run `../_shared/scripts/preflight.sh`. It checks `bq`, the gcloud login and read access to `wego-cloud.integrated_bookings_flights` and `wego-cloud.services_genzo`, and prints the exact command for anything missing. Show that command to the user and stop until they have run it.
 
 ## Run
 
@@ -39,13 +39,13 @@ Render it as a Markdown pipe table when you show it to a person. Pad the cells s
 Pick the rows and columns that answer the question rather than passing all of them through.
 
 
-Each row is one GDS and one combination of queues seen at the moment the booking changed state. The queue number names the code path that acted; read it with the table in `../_shared/references/data-sources.md`. The same end state reached through two different queues is two different pieces of code, and that difference is usually the answer.
-
 Each row is one combination of GDS, queue, `cancellation_reason` and `payment_status`. The last two
 matter: a single queue routinely carries several outcomes, and a combined row hides which is which.
 Queue 41 mixes ticketing failures that are emailed with voluntary cancels that are not, and reading
 those as one population reports a false gap. `example_refs` gives up to five booking references per
 row, so a surprising row goes straight into `booking-trace`.
+
+The queue number names the code path that acted; read it with the table in `../_shared/references/data-sources.md`. The same end state reached through two different queues is two different pieces of code, and that difference is usually the answer.
 
 The email columns count `EMAIL_LOG` rows, emails handed to wego-crm, before the event and within an
 hour after it. That second window opens 5 minutes **before** `event_at`, because some paths send
