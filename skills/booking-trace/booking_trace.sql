@@ -22,7 +22,7 @@ events AS (
                 IFNULL(CONCAT(' / ', cancellation_reason), '')) AS detail
   FROM b
   UNION ALL
-  SELECT p.created_at, 'payment', CONCAT('created ', p.status), CONCAT(p.payment_method_code, ' · now ', p.status, ' at ', CAST(p.updated_at AS STRING))
+  SELECT p.created_at, 'payment', CONCAT('created ', p.status), CONCAT(IFNULL(p.payment_method_code, '-'), ' · now ', p.status, ' at ', CAST(p.updated_at AS STRING))
   FROM `wego-cloud.integrated_bookings_flights.payments*` p
   WHERE p._TABLE_SUFFIX BETWEEN @from_shard AND @to_shard AND p.order_id IN (SELECT payment_order_id FROM b)
   UNION ALL
@@ -30,11 +30,11 @@ events AS (
   FROM `wego-cloud.integrated_bookings_flights.provider_exchange_logs*` x
   WHERE x._TABLE_SUFFIX BETWEEN @from_shard AND @to_shard AND x.wego_ref = @ref
   UNION ALL
-  SELECT q.created_at, CONCAT('queue ', q.queue_number), q.status, CONCAT(IFNULL(q.ipcc, ''), ' ', q.gds_ref)
+  SELECT q.created_at, CONCAT('queue ', q.queue_number), q.status, CONCAT(IFNULL(q.ipcc, ''), ' ', IFNULL(q.gds_ref, '-'))
   FROM `wego-cloud.integrated_bookings_flights.queue_events` q
   WHERE q.booking_id IN (SELECT id FROM b)
   UNION ALL
-  SELECT cancelled_at, 'booking', 'cancelled', CONCAT(booking_status, ' / ', payment_status, ' / ', cancellation_reason) FROM b WHERE cancelled_at IS NOT NULL
+  SELECT cancelled_at, 'booking', 'cancelled', CONCAT(booking_status, ' / ', payment_status, ' / ', IFNULL(cancellation_reason, '-')) FROM b WHERE cancelled_at IS NOT NULL
   UNION ALL
   SELECT completed_at, 'booking', 'ticketed', '' FROM b WHERE completed_at IS NOT NULL
   UNION ALL
@@ -42,11 +42,11 @@ events AS (
   FROM `wego-cloud.integrated_bookings_flights.booking_admin_notes` n
   WHERE n.booking_id IN (SELECT id FROM b)
   UNION ALL
-  SELECT l.scd_dep_date_time_utc, 'flight', 'departure', CONCAT(l.departure_airport_code, '-', l.arrival_airport_code, ' · leg ', l.status)
+  SELECT l.scd_dep_date_time_utc, 'flight', 'departure', CONCAT(IFNULL(l.departure_airport_code, '-'), '-', IFNULL(l.arrival_airport_code, '-'), ' · leg ', IFNULL(l.status, '-'))
   FROM `wego-cloud.integrated_bookings_flights.legs*` l
   WHERE l._TABLE_SUFFIX BETWEEN @from_shard AND @to_shard AND l.itinerary_id IN (SELECT itinerary_id FROM i)
   UNION ALL
-  SELECT NULL, 'itinerary', CONCAT(integration_type, ' ', gds_ref), CONCAT(itinerary_status, ' / ticket ', ticket_status, ' / qct ', IFNULL(qct_status, '-'))
+  SELECT NULL, 'itinerary', CONCAT(integration_type, ' ', IFNULL(gds_ref, '-')), CONCAT(IFNULL(itinerary_status, '-'), ' / ticket ', IFNULL(ticket_status, '-'), ' / qct ', IFNULL(qct_status, '-'))
   FROM i
 ),
 ordered AS (

@@ -23,6 +23,9 @@ command -v bq >/dev/null 2>&1 || {
 
 PROJECT="wego-cloud"
 MAX_ROWS=500
+# Refuse any query that would scan more than this. Normal runs scan 20 to 65 GB; a wrong
+# shard or date range can scan ten times that, and on-demand BigQuery bills every byte.
+MAX_BYTES=$((250 * 1000 * 1000 * 1000))
 
 [ $# -ge 1 ] || { echo "usage: query.sh <file.sql> name=value [name=value ...]" >&2; exit 1; }
 sql_file="$1"; shift
@@ -61,10 +64,13 @@ finished=0
 trap 'rc=$?; rm -f "$raw" "$err"; if [ "$finished" -ne 1 ] && [ "$rc" -eq 0 ]; then rc=1; fi; exit $rc' EXIT
 
 if ! bq query --project_id="$PROJECT" --use_legacy_sql=false --format=csv \
-       --max_rows="$MAX_ROWS" --quiet ${params[@]+"${params[@]}"} < "$sql_file" >"$raw" 2>"$err"; then
+       --max_rows="$MAX_ROWS" --maximum_bytes_billed="$MAX_BYTES" --quiet ${params[@]+"${params[@]}"} < "$sql_file" >"$raw" 2>"$err"; then
   # bq reports BigQuery errors on stdout and wrapper errors (expired auth) on stderr, so show both.
   echo "BigQuery query failed:" >&2
   cat "$raw" "$err" 2>/dev/null | grep -v '^Waiting on ' | head -20 >&2
+  if cat "$raw" "$err" 2>/dev/null | grep -qi 'bytes billed'; then
+    echo "The query would scan more than $((MAX_BYTES / 1000000000)) GB, the limit this script sets. Narrow the shard or date range." >&2
+  fi
   exit 1
 fi
 

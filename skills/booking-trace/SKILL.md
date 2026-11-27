@@ -7,7 +7,7 @@ Answer shape: one or two lines that answer the question, the table, one line nam
 
 ## Before running
 
-Run `../_shared/scripts/preflight.sh`. It checks `bq`, the gcloud login and read access to `wego-cloud.integrated_bookings_flights`, and prints the exact command for anything missing. Show that command to the user and stop until they have run it; the login needs a browser round-trip in their own terminal.
+Run `../_shared/scripts/preflight.sh`. It checks `bq`, the gcloud login and read access to `wego-cloud.integrated_bookings_flights` and `wego-cloud.services_genzo`, and prints the exact command for anything missing. Show that command to the user and stop until they have run it; the login needs a browser round-trip in their own terminal.
 
 ## Run
 

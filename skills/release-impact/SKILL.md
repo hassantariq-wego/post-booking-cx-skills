@@ -7,7 +7,7 @@ Answer shape: one or two lines that answer the question, the table, one line nam
 
 ## Before running
 
-Run `../_shared/scripts/preflight.sh`. It checks `bq`, the gcloud login and read access to `wego-cloud.integrated_bookings_flights`, and prints the exact command for anything missing. Show that command to the user and stop until they have run it.
+Run `../_shared/scripts/preflight.sh`. It checks `bq`, the gcloud login and read access to `wego-cloud.integrated_bookings_flights` and `wego-cloud.services_genzo`, and prints the exact command for anything missing. Show that command to the user and stop until they have run it.
 
 ## Which metric set
 
@@ -59,7 +59,7 @@ after-days an early look, not a verdict.
 
 ### Read the result
 
-Show the ALL row and the GDS rows with enough volume to matter. Flag a delta only when both periods have the volume to support it; a change from 3 to 6 bookings is noise, say so.
+Flag a delta only when both periods have the volume to support it; a change from 3 to 6 bookings is noise, say so.
 
 `released_and_emailed` counts bookings with a customer email within an hour of `cancelled_at`.
 
