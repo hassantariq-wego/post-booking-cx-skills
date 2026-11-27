@@ -46,7 +46,7 @@ events AS (
   FROM `wego-cloud.integrated_bookings_flights.legs*` l
   WHERE l._TABLE_SUFFIX BETWEEN @from_shard AND @to_shard AND l.itinerary_id IN (SELECT itinerary_id FROM i)
   UNION ALL
-  SELECT NULL, 'itinerary', CONCAT(integration_type, ' ', IFNULL(gds_ref, '-')), CONCAT(itinerary_status, ' / ticket ', ticket_status, ' / qct ', IFNULL(qct_status, '-'))
+  SELECT NULL, 'itinerary', CONCAT(integration_type, ' ', IFNULL(gds_ref, '-')), CONCAT(IFNULL(itinerary_status, '-'), ' / ticket ', IFNULL(ticket_status, '-'), ' / qct ', IFNULL(qct_status, '-'))
   FROM i
 ),
 ordered AS (
